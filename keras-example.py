@@ -38,15 +38,17 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 
 
 def sum_pooling_layer(x, pool_size):
-   x = AveragePooling2D(pool_size=pool_size, padding='valid')(x)
+   x = AveragePooling2D(pool_size=pool_size, padding='valid', data_format='channels_first')(x)
    x = Lambda(lambda x: x * pool_size[0] * pool_size[1])(x)
    return x
 
 
 a = Input(shape=(1, img_rows, img_cols))
 b = sk.Similarity(sim_channels,
-                 ksize=[2, 2], strides=[2, 2], similarity_function='L2',
+                 blocks=[2, 2], strides=[2, 2], similarity_function='L2',
                  normalization_term=True, padding=[2, 2], out_of_bounds_value=np.nan, ignore_nan_input=True)(a)
+#import pdb
+#pdb.set_trace()
 while b.shape[-2:] != (1, 1):
    mex_channels *= 2
    b = sk.Mex(mex_channels,
@@ -65,7 +67,8 @@ model = Model(inputs=[a], outputs=[b])
 print(model.summary())
 
 def softmax_loss(y_true, y_pred):
-   return K.categorical_crossentropy(y_pred, y_true, True)
+   #return K.categorical_crossentropy(y_pred, y_true, True)
+   return keras.losses.categorical_crossentropy(y_pred, y_true)
 
 model.compile(loss=softmax_loss,
              optimizer=keras.optimizers.nadam(lr=1e-2, epsilon=1e-6),

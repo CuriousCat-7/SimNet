@@ -17,7 +17,7 @@ templates = tf.Variable(tf.truncated_normal(shape, stddev=0.1))
 weights_var = tf.Variable(tf.truncated_normal(shape, stddev=0.1))
 weights = tf.abs(weights_var)
 
-sim = similarity(xr, templates, weights, similarity_function='L2', ksize=[28,28], strides=[28,28], padding=[0,0])
+sim = similarity(xr, templates, weights, similarity_function='L2',blocks=[28,28], strides=[28,28], padding=[0,0])
 y = tf.reshape(sim, [-1, 10])
 
 kmo_init, kmo = similarity_unsupervised_init('kmeans', sim, templates, weights_var)

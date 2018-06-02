@@ -5,8 +5,19 @@ from keras.models import Model
 from keras.layers import Input, Flatten, AveragePooling2D, Lambda
 from keras import backend as K
 import numpy as np
+import pdb
+import os
+import tensorflow as tf
 
-batch_size = 64
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+from keras.backend.tensorflow_backend import set_session
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.3
+set_session(tf.Session(config=config))
+
+
+#batch_size = 64
+batch_size = 128
 num_classes = 10
 sim_kernel = 2
 sim_channels = 32
@@ -19,15 +30,20 @@ img_rows, img_cols = 28, 28
 # the data, shuffled and split between train and test sets
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
+if K.image_data_format() == 'channels_last':
+    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
+    x_train = x_train.transpose(0,3,1,2)
+    x_test = x_test.transpose(0,3,1,2)
+    input_shape = (1, img_rows, img_cols)
 
-x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
-input_shape = (1, img_rows, img_cols)
 
 x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
-x_train = x_train / 255.0 - 0.5
-x_test = x_test / 255.0 - 0.5
+#x_train = x_train / 255.0 - 0.5
+#x_test = x_test / 255.0 - 0.5
+x_train /= 255.0
+x_test /= 255.0
 
 print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
@@ -47,8 +63,6 @@ a = Input(shape=(1, img_rows, img_cols))
 b = sk.Similarity(sim_channels,
                  blocks=[2, 2], strides=[2, 2], similarity_function='L2',
                  normalization_term=True, padding=[2, 2], out_of_bounds_value=np.nan, ignore_nan_input=True)(a)
-#import pdb
-#pdb.set_trace()
 while b.shape[-2:] != (1, 1):
    mex_channels *= 2
    b = sk.Mex(mex_channels,
@@ -70,11 +84,12 @@ def softmax_loss(y_true, y_pred):
    #return K.categorical_crossentropy(y_pred, y_true, True)
    return keras.losses.categorical_crossentropy(y_pred, y_true)
 
-model.compile(loss=softmax_loss,
+model.compile(loss=keras.losses.categorical_crossentropy,
              optimizer=keras.optimizers.nadam(lr=1e-2, epsilon=1e-6),
              metrics=['accuracy'])
 
-sk.perform_unsupervised_init(model, 'kmeans', layers=None, data=x_train, batch_size=100)
+pdb.set_trace()
+sk.perform_unsupervised_init(model, 'gmm', layers=None, data=x_train, batch_size=100)
 
 model.fit(x_train, y_train,
          batch_size=batch_size,

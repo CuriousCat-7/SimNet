@@ -44,15 +44,26 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
 model.add(InputLayer(input_shape=(3,32,32)))
-model.add(Conv2D(filters=75, kernel_size=(5,5), padding='same', use_bias=None,\
+model.add(Conv2D(filters=32, kernel_size=(5,5), padding='same', use_bias=None,\
     data_format='channels_first', strides=(1,1)))
-model.add(sk.Similarity(75, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[0,0],\
+model.add(sk.Similarity(32, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[0,0],\
     out_of_bounds_value=np.nan, ignore_nan_input=True ))
-model.add(sk.Mex(10,
-              blocks=[75, 16, 16], strides=[75, 16, 16],
+model.add(sk.Mex(32,
+              blocks=[32, 3, 3], strides=[32, 2, 2],
               softmax_mode=False, normalize_offsets=True,
               use_unshared_regions=True, unshared_offset_region=[2]))
-model.add(keras.layers.AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format='channels_first'))
+model.add(Conv2D(filters=64, kernel_size=(5,5), padding='same', use_bias=None,\
+    data_format='channels_first', strides=(1,1)))
+model.add(sk.Similarity(64, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[0,0],\
+    out_of_bounds_value=np.nan, ignore_nan_input=True ))
+model.add(sk.Mex(64,
+              blocks=[64, 3, 3], strides=[64, 2, 2],
+              softmax_mode=False, normalize_offsets=True,
+              use_unshared_regions=True, unshared_offset_region=[2])) #w/4 = 8
+model.add(sk.Mex(10,
+              blocks=[64, 8, 8], strides=[64, 1, 1],
+              softmax_mode=True, normalize_offsets=True,
+              use_unshared_regions=True, unshared_offset_region=[2])) #max pooling
 model.add(Flatten(data_format='channels_first'))
 model.summary()
 # initiate SGD with nesterov optimizer

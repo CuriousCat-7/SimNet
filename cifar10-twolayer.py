@@ -17,7 +17,7 @@ import simnets.keras as sk
 import numpy as np
 import os
 import pdb
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.3
 set_session(tf.Session(config=config))
@@ -46,7 +46,7 @@ model = Sequential()
 model.add(InputLayer(input_shape=(3,32,32)))
 model.add(Conv2D(filters=32, kernel_size=(5,5), padding='same', use_bias=None,\
     data_format='channels_first', strides=(1,1)))
-model.add(sk.Similarity(32, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[0,0],\
+model.add(sk.Similarity(32, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[1,1],\
     out_of_bounds_value=np.nan, ignore_nan_input=True ))
 model.add(sk.Mex(32,
               blocks=[32, 3, 3], strides=[32, 2, 2],
@@ -54,14 +54,14 @@ model.add(sk.Mex(32,
               use_unshared_regions=True, unshared_offset_region=[2]))
 model.add(Conv2D(filters=64, kernel_size=(5,5), padding='same', use_bias=None,\
     data_format='channels_first', strides=(1,1)))
-model.add(sk.Similarity(64, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[0,0],\
+model.add(sk.Similarity(64, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[1,1],\
     out_of_bounds_value=np.nan, ignore_nan_input=True ))
 model.add(sk.Mex(64,
               blocks=[64, 3, 3], strides=[64, 2, 2],
               softmax_mode=False, normalize_offsets=True,
               use_unshared_regions=True, unshared_offset_region=[2])) #w/4 = 8
 model.add(sk.Mex(10,
-              blocks=[64, 8, 8], strides=[64, 1, 1],
+              blocks=[64, 8, 8], strides=[64, 8, 8],
               softmax_mode=True, normalize_offsets=True,
               use_unshared_regions=True, unshared_offset_region=[2])) #max pooling
 model.add(Flatten(data_format='channels_first'))

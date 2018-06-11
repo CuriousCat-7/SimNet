@@ -8,13 +8,15 @@ import keras
 from keras.datasets import cifar10
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten, Input
+from keras.layers import Dense, Dropout, Activation, Flatten, Input, InputLayer
 from keras.layers import Conv2D, MaxPooling2D
 from keras.backend.tensorflow_backend import set_session
 from keras import backend as K
 import tensorflow as tf
 import simnets.keras as sk
+import numpy as np
 import os
+import pdb
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.3
@@ -42,18 +44,19 @@ y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
 model = Sequential()
-model.add(Input(shape=(3,32,32)))
+model.add(InputLayer(input_shape=(3,32,32)))
 model.add(Conv2D(filters=75, kernel_size=(5,5), padding='same', use_bias=None,\
     data_format='channels_first', strides=(1,1)))
 model.add(sk.Similarity(75, blocks=[1,1], strides=[1,1], similarity_function='L2',normalization_term=True, padding=[0,0],\
     out_of_bounds_value=np.nan, ignore_nan_input=True ))
 model.add(sk.Mex(10,
-              blocks=[16, 1, 1], strides=[16, 1, 1],
+              blocks=[75, 16, 16], strides=[75, 16, 16],
               softmax_mode=False, normalize_offsets=True,
-              use_unshared_regions=True, unshared_offset_region=[2])(b))
+              use_unshared_regions=True, unshared_offset_region=[2]))
 model.add(keras.layers.AveragePooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format='channels_first'))
 model.add(Flatten(data_format='channels_first'))
-
+model.summary()
+pdb.set_trace()
 # initiate SGD with nesterov optimizer
 opt = keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=True)
 

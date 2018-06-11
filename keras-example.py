@@ -59,9 +59,9 @@ def sum_pooling_layer(x, pool_size):
 
 
 a = Input(shape=(1, img_rows, img_cols))
-b = Conv2D(9, 3, padding='same',strides=[1,1], data_format='channels_first', activation='relu', use_bias=False)(a) # attention! the strides cannot be 1
+b = Conv2D(9, 3, padding='same',strides=[1,1], data_format='channels_first', use_bias=False)(a) # attention! the strides cannot be 1
 b = sk.Similarity(sim_channels,
-                 blocks=[2, 2], strides=[2, 2], similarity_function='L2',
+                 blocks=[3, 3], strides=[2, 2], similarity_function='L2',
                  normalization_term=True, padding=[2, 2], out_of_bounds_value=np.nan, ignore_nan_input=True)(b)
 while b.shape[-2:] != (1, 1):
    mex_channels *= 2
@@ -75,7 +75,7 @@ b = sk.Mex(num_classes,
           blocks=[mex_channels, 1, 1], strides=[mex_channels, 1, 1],
           softmax_mode=True, normalize_offsets=True,
           use_unshared_regions=True, shared_offset_region=[1])(b)
-b = Flatten()(b)
+b = Flatten(data_format='channels_first')(b)
 model = Model(inputs=[a], outputs=[b])
 
 print(model.summary())

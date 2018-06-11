@@ -2,10 +2,9 @@ import simnets.keras as sk
 import keras
 from keras.datasets import mnist
 from keras.models import Model
-from keras.layers import Input, Flatten, AveragePooling2D, Lambda
+from keras.layers import Input, Flatten, AveragePooling2D, Lambda, Conv2D
 from keras import backend as K
 import numpy as np
-import pdb
 import os
 import tensorflow as tf
 
@@ -60,9 +59,10 @@ def sum_pooling_layer(x, pool_size):
 
 
 a = Input(shape=(1, img_rows, img_cols))
+b = Conv2D(9, 3, padding='same',strides=[1,1], data_format='channels_first', activation='relu', use_bias=False)(a) # attention! the strides cannot be 1
 b = sk.Similarity(sim_channels,
                  blocks=[2, 2], strides=[2, 2], similarity_function='L2',
-                 normalization_term=True, padding=[2, 2], out_of_bounds_value=np.nan, ignore_nan_input=True)(a)
+                 normalization_term=True, padding=[2, 2], out_of_bounds_value=np.nan, ignore_nan_input=True)(b)
 while b.shape[-2:] != (1, 1):
    mex_channels *= 2
    b = sk.Mex(mex_channels,
@@ -85,11 +85,10 @@ def softmax_loss(y_true, y_pred):
    return keras.losses.categorical_crossentropy(y_pred, y_true)
 
 model.compile(loss=keras.losses.categorical_crossentropy,
-             optimizer=keras.optimizers.nadam(lr=1e-2, epsilon=1e-6),
+             optimizer=keras.optimizers.nadam(lr=5e-1, epsilon=1e-6),
              metrics=['accuracy'])
 
-pdb.set_trace()
-sk.perform_unsupervised_init(model, 'gmm', layers=None, data=x_train, batch_size=100)
+sk.perform_unsupervised_init(model, 'kmeans', layers=None, data=x_train, batch_size=100)
 
 model.fit(x_train, y_train,
          batch_size=batch_size,

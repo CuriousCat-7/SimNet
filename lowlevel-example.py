@@ -21,6 +21,8 @@ sim = similarity(xr, templates, weights, similarity_function='L2',blocks=[28,28]
 y = tf.reshape(sim, [-1, 10])
 
 kmo_init, kmo = similarity_unsupervised_init('kmeans', sim, templates, weights_var)
+import pdb
+pdb.set_trace()
 
 cross_entropy = tf.reduce_mean(
     tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
@@ -33,7 +35,7 @@ sess.run(tf.global_variables_initializer())
 for idx in range(300):
     batch = mnist.train.next_batch(100)
     if idx == 0:
-        kmo_init.run(feed_dict={x: batch[0], y_: batch[1]})
+        kmo_init.eval(feed_dict={x: batch[0], y_: batch[1]})
     kmo.run(feed_dict={x: batch[0], y_: batch[1]})
     if (idx + 1) % 100 == 0:
         print('kmeans', idx+1, '/', 1000)
